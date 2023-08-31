@@ -69,10 +69,9 @@ def aes_dec(enc_str, key):
 
 for s in enc_str:
     decrypted = aes_dec(s,key)
-    ascii_decrypted = filter_non_printable(decrypted)
-    # print(ascii_decrypted)
+    printable_decrypted = filter_non_printable(decrypted)
     label = next(enc_label_cycle)
-    print(f"{label}: {ascii_decrypted}")
+    print(f"{label}: {printable_decrypted}")
 
 for s in ptext:
     label = next(ptext_label_cycle)

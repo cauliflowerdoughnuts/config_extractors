@@ -27,10 +27,11 @@ def filter_non_printable(str):
   return ''.join([c for c in str if ord(c) > 31 or ord(c) == 9])
 
 def get_key_seed(config):
+    seed = ''
     for i in config:
         if len(i) == 16:
-            key_seed = i
-    return bytes(key_seed, 'UTF-8')
+            seed = i
+    return bytes(seed, 'UTF-8')
 
 def aes_dec(enc_str, key):
     enc_str_b64 = base64.b64decode(enc_str)

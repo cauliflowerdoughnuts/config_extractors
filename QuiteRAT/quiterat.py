@@ -17,6 +17,25 @@ for s in pe.sections:
     if s.Name.startswith(b'.rdata'):
         rdata_data = s.get_data()
 
+
+def decrypt(data, key):
+    data_enc = base64.b64decode(data)
+    out = []
+    for c in data_enc:
+        out.append(c ^ key)
+    return bytes(out)
+
+
+# Brute force the XOR key using http as the expected plaintext value
+def brute_force_xor(ciphertext, target_substring):
+    for key in range(256):
+        decrypted = decrypt(ciphertext, key)
+        decrypted_str = decrypted.decode(errors='ignore')
+        if target_substring in decrypted_str:
+            return key
+    return None
+
+
 # Find the encrypted strings in the .rdata section
 enc_strings = []
 string_candidates = re.findall(REGEX_B64_STRINGS, rdata_data)
@@ -28,33 +47,18 @@ for i, s in enumerate(string_candidates):
 
 enc_strings = list(set(enc_strings))
 
-def decrypt(data, key):
-    data_enc = base64.b64decode(data)
-    out = []
-    for c in data_enc:
-        out.append(c ^ key)
-    return bytes(out)
-
 target_substring = 'http'
-correct_key = None
 
-# Brute force the XOR key using http as the expected plaintext value
-def brute_force_xor(ciphertext, target_substring):
-    for key in range(256):
-        decrypted = decrypt(ciphertext, key)
-        decrypted_str = decrypted.decode(errors='ignore')
-        if target_substring in decrypted_str:
-            return key
-    return None
+correct_key = None
 
 for ciphertext in enc_strings:
     key = brute_force_xor(ciphertext, target_substring)
-    if key is not None:
+    if key:
         correct_key = key
         break
 
 # If the brute force is successful then use the key to decrypt all of the strings
-if correct_key is not None:
+if correct_key:
     decrypted_strings = []
     for ciphertext in enc_strings:
         decrypted = decrypt(ciphertext, correct_key)

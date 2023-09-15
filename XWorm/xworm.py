@@ -52,7 +52,7 @@ for mtype in module.GetTypes():
         if not method.Body.HasInstructions: 
             continue
         for ptr in range(len(method.Body.Instructions)):
-            if "ret" in method.Body.Instructions[ptr].ToString() and "stsfld" in method.Body.Instructions[ptr-1].ToString() and "ldstr" in method.Body.Instructions[ptr-2].ToString():
+            if "ret" in method.Body.Instructions[ptr].ToString() and "stsfld" in method.Body.Instructions[ptr-1].ToString() and "ldstr" in method.Body.Instructions[ptr-2].ToString() or "ret" in method.Body.Instructions[ptr].ToString() and "stsfld" in method.Body.Instructions[ptr-1].ToString() and "call" in method.Body.Instructions[ptr-2].ToString():
                 for ptr in range(len(method.Body.Instructions)):
                     if method.Body.Instructions[ptr].OpCode == OpCodes.Ldstr:
                         config.append((method.Body.Instructions[ptr].Operand))

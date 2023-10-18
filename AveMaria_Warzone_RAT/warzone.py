@@ -13,7 +13,7 @@ else:
 
 pe = pefile.PE(data=file_data)
 for s in pe.sections:
-    if s.Name == b'.bss\x00\x00\x00\x00':
+    if s.Name.startswith(b'.bss'):
         section_data = s.get_data()
 
 

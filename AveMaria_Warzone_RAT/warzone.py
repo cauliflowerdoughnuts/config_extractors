@@ -25,29 +25,17 @@ def decrypt(key, cipher):
 
 
 def parse_config(c2_config):
-    c2_address = ''
-    c2_port = ''
-    bot_id = ''
-    bot_id_count = 0
-    for i in range(1, len(c2_config)): # The first byte in the config is discarded
-        byte = c2_config[i]
-        if 32 <= byte <= 126:  # Check if the byte represents a printable character
-            if not c2_port:  
-                c2_address += chr(byte)
-            else:  
-                bot_id += chr(byte)
-                bot_id_count += 1
-                if bot_id_count == 10:
-                    break
-        else:
-            if not c2_port:  #
-                c2_port = struct.unpack('<H', c2_config[i:i+2])[0] # Convert port from network byte order hex (big endian)
-                i += 1 # We captured two bytes at once so we need to adjust the counter
+    c2_config_len = c2_config[0]
+    c2_config = c2_config[1:c2_config_len + 1]
+    bot_id = str(c2_config[c2_config_len - 10: c2_config_len], encoding="ASCII")
+    c2_port_start = c2_config.find(b'\x88\x13') - 2
+    c2_port = struct.unpack('<H', c2_config[c2_port_start:c2_port_start + 2])[0]
+    c2_address = str(c2_config[:c2_port_start], encoding="ASCII")
     return c2_address, c2_port, bot_id
 
 
 key_size = struct.unpack('<I', section_data[:4])[0]
-key = section_data[4: key_size + 4] # I am not sure why the + 4 is needed after the key_size - without it the extracted key is 4 bytes short even though the key_size is correct (50 bytes)
+key = section_data[4: 4 + key_size]
 enc_c2_config = section_data[4 + key_size:]
 
 

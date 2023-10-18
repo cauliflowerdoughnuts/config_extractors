@@ -4,7 +4,7 @@ import pefile
 import struct
 from malduck import rc4
 
-TARGET_PATH = input('Enter file path to AveMaria payload:')
+TARGET_PATH = input('Enter file path to AveMaria/WarZone payload:')
 
 if os.path.exists(TARGET_PATH):
     file_data = open(TARGET_PATH,'rb').read()
@@ -25,7 +25,7 @@ def decrypt(key, cipher):
 
 
 def parse_config(c2_config):
-    c2_ip_domain = ''
+    c2_address = ''
     c2_port = ''
     bot_id = ''
     bot_id_count = 0
@@ -33,7 +33,7 @@ def parse_config(c2_config):
         byte = c2_config[i]
         if 32 <= byte <= 126:  # Check if the byte represents a printable character
             if not c2_port:  
-                c2_ip_domain += chr(byte)
+                c2_address += chr(byte)
             else:  
                 bot_id += chr(byte)
                 bot_id_count += 1
@@ -43,7 +43,7 @@ def parse_config(c2_config):
             if not c2_port:  #
                 c2_port = struct.unpack('<H', c2_config[i:i+2])[0] # Convert port from network byte order hex (big endian)
                 i += 1 # We captured two bytes at once so we need to adjust the counter
-    return c2_ip_domain, c2_port, bot_id
+    return c2_address, c2_port, bot_id
 
 
 key_size = struct.unpack('<I', section_data[:4])[0]
@@ -52,9 +52,9 @@ enc_c2_config = section_data[4 + key_size:]
 
 
 c2_config = decrypt(key, enc_c2_config)
-c2_ip_domain, c2_port, bot_id = parse_config(c2_config)
+c2_address, c2_port, bot_id = parse_config(c2_config)
 
 
-print(f'C2 Address: {c2_ip_domain}')
+print(f'C2 Address: {c2_address}')
 print(f'C2 Port: {c2_port}')
 print(f'Bot ID: {bot_id}')

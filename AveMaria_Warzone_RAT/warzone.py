@@ -28,7 +28,7 @@ def parse_config(c2_config):
     c2_config_len = c2_config[0]
     c2_config = c2_config[1:c2_config_len + 1]
     bot_id = str(c2_config[c2_config_len - 10: c2_config_len], encoding="ASCII")
-    c2_port_start = c2_config.find(b'\x88\x13') - 2
+    c2_port_start = c2_config.find(b'\x88\x13') - 2 # These bytes have shown up as a common delimiter between the C2 and the bot ID
     c2_port = struct.unpack('<H', c2_config[c2_port_start:c2_port_start + 2])[0]
     c2_address = str(c2_config[:c2_port_start], encoding="ASCII")
     return c2_address, c2_port, bot_id

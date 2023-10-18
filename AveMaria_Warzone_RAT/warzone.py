@@ -12,7 +12,6 @@ else:
     sys.exit('File does not exist - terminating')
 
 pe = pefile.PE(data=file_data)
-section_data = None
 for s in pe.sections:
     if s.Name == b'.bss\x00\x00\x00\x00':
         section_data = s.get_data()

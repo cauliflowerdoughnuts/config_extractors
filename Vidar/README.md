@@ -13,5 +13,5 @@ Below samples are all packed.
 
 # Notes
 
-[vidar_c2_extract.py](vidar_c2_extract.py) - Will extract the intermediate C2 from the payload, make a GET request and then parse out the final C2s from the response.
-[vidar_idapython_string_decrypt.py](vidar_idapython_string_decrypt.py) - Must be run in IDA. It will attempt to locate the XOR decrypt function and then using XREFs decrypt all of the strings and add comments to the IDB file.
+* [vidar_c2_extract.py](vidar_c2_extract.py) - Will extract the intermediate C2 from the payload, make a GET request and then parse out the final C2s from the response.
+* [vidar_idapython_string_decrypt.py](vidar_idapython_string_decrypt.py) - Must be run in IDA. It will attempt to locate the XOR decrypt function and then using XREFs decrypt all of the strings and add comments to the IDB file.

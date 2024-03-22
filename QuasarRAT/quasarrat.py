@@ -5,6 +5,7 @@ import malduck
 from Crypto.Protocol.KDF import PBKDF2
 import base64
 import itertools
+import binascii
 clr.AddReference('System.Memory')
 from System.Reflection import Assembly, MethodInfo, BindingFlags
 from System import Type
@@ -43,7 +44,36 @@ def extract_cipher_strings(module):
                     if operand.isalnum(): # The only string that is not base64 encoded should be the key password
                         key_password = operand
                         cipher.remove(key_password)
+
+    # Filter out non-base64 strings
+    cipher = [s for s in cipher if is_base64(s)]
+
     return cipher, key_password
+
+def is_base64(s):
+    try:
+        base64.b64decode(s)
+        return True
+    except binascii.Error:
+        return False
+
+
+def try_key(key, cipher):
+    temp_decoded_strings = []
+    for i, s in enumerate(cipher):
+        try:
+            string_data_b64 = base64.b64decode(s)[32:]         
+            iv, enc_data = string_data_b64[:16], string_data_b64[16:]
+            decoded_string = malduck.aes.cbc.decrypt(key, iv, enc_data).decode('utf-8', 'ignore')
+            if i == 0 and not decoded_string[0].isdigit(): # The first string should be the version number
+                return None
+            if i == 2 and not decoded_string.strip().isalnum(): # The third string should be the install directory              
+                return None
+            decoded_string = ''.join(ch if ch.isprintable() else '' for ch in decoded_string)
+            temp_decoded_strings.append(decoded_string)
+        except Exception as e:
+            pass
+    return temp_decoded_strings
 
 
 def decrypt_config(cipher, key_password):
@@ -51,28 +81,21 @@ def decrypt_config(cipher, key_password):
     keys = [key_32[:16], key_32] # Some samples use 16 byte keys, some use 32 byte keys
     key_16_match = key_32_match = False
 
+
     print("[+] Testing AES keys...\n")
     for key in keys:
         if key_16_match and len(key) == 32:
             continue
-        for i, s in enumerate(cipher):
-            try:
-                string_data_b64 = base64.b64decode(s)[32:]
-                iv, enc_data = string_data_b64[:16], string_data_b64[16:]
-                decoded_string = malduck.aes.cbc.decrypt(key, iv, enc_data).decode('utf-8', 'ignore')
-                if i == 0 and not decoded_string[0].isdigit():
-                    print(f"[!] {len(key)} byte key failed.\n")
-                    break
-                decoded_string = ''.join(ch if ch.isprintable() else '' for ch in decoded_string)
+        decoded_strings = try_key(key, cipher)
+        if decoded_strings is not None:
+            for i, decoded_string in enumerate(decoded_strings):
                 if i == 0:
-                    print(f"[+] Config has been decrypted with {len(key)} byte key derived from passphrase {key_password}:\n")
+                    print(f"[+] Config has been decrypted with a {len(key)} byte key derived from passphrase {key_password}:\n")
                 print(f"{LABELS[i]}: {decoded_string}")
                 if len(key) == 16:
                     key_16_match = True
                 elif len(key) == 32:
                     key_32_match = True
-            except Exception as e:
-                pass
     if not key_16_match and not key_32_match:
         print(f"[!] Decryption failed with both 16 and 32 byte keys derived from passphrase {key_password}.\n")
 

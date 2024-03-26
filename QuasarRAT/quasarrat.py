@@ -4,14 +4,12 @@ import clr
 import malduck
 from Crypto.Protocol.KDF import PBKDF2
 import base64
-import itertools
 import binascii
 clr.AddReference('System.Memory')
 from System.Reflection import Assembly, MethodInfo, BindingFlags
 from System import Type
 DNLIB_PATH = '/<path to>/dnlib.dll'
 clr.AddReference(DNLIB_PATH)
-import dnlib
 from dnlib.DotNet import *
 
 
@@ -19,9 +17,10 @@ SALT = bytes([191, 235, 30, 86, 251, 205, 151, 59, 178, 25, 2, 36, 48, 165, 120,
 LABELS = ['Version', 'C2', 'Install Directory', 'Install Name', 'Mutex', 'Registry Name', 'Tag', 'Logs Directory', 'Server Signature', 'Server Certificate']
 
 
-def load_pefile(file_path):
-    if os.path.exists(file_path):
-        return open(file_path, 'rb').read()
+def load_pefile(target_path):
+    if os.path.exists(target_path):
+        file_data = ModuleDefMD.Load(target_path)
+        return file_data
     else:
         sys.exit('File does not exist - terminating')
 
@@ -102,7 +101,7 @@ def decrypt_config(cipher, key_password):
 
 def main():
     target_path = input('Enter file path to Quasar payload:')
-    file_data = ModuleDefMD.Load(target_path)
+    file_data = load_pefile(target_path)
     cipher, key_password = extract_cipher_strings(file_data)
     decrypt_config(cipher, key_password)
 

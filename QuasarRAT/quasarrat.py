@@ -26,10 +26,10 @@ def load_pefile(file_path):
         sys.exit('File does not exist - terminating')
 
 
-def extract_cipher_strings(module):
+def extract_cipher_strings(file_data):
     cipher = []
     key_password = None
-    for mtype in module.GetTypes():
+    for mtype in file_data.GetTypes():
         if not mtype.HasMethods:
             continue
         for method in mtype.Methods:
@@ -102,9 +102,8 @@ def decrypt_config(cipher, key_password):
 
 def main():
     target_path = input('Enter file path to Quasar payload:')
-    file_data = load_pefile(target_path)
-    module = ModuleDefMD.Load(target_path)
-    cipher, key_password = extract_cipher_strings(module)
+    file_data = ModuleDefMD.Load(target_path)
+    cipher, key_password = extract_cipher_strings(file_data)
     decrypt_config(cipher, key_password)
 
 

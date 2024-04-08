@@ -55,7 +55,7 @@ def split_cipher_key_variant_2(enc_strings):
     return cipher, key
 
 
-# After the cipher is hashed, the hash is extended to the length of the key by repeating the hash until the key length is reached
+# After the cipher is hashed, the hash is repeated until it matches the key length
 def hash_sha256(cipher, key_length):
     sha256_hash = hashlib.sha256()
     sha256_hash.update(cipher.encode('utf-8'))

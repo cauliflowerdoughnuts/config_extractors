@@ -65,18 +65,21 @@ def main(file_path):
     encrypted_strings = split_pattern.split(section_data)[1:] # Using a positive lookahead so the first list element will be empty.
 
     strings = [decrypt(enc_str) for enc_str in encrypted_strings]
+    rc4_key = next((strings[i + 1] for i in range(len(strings) - 1) if strings[i] == "ERROR\x00"), 'key not found')
     strings = list(set(filter(None, strings)))
 
     c2_uris = [i for i in strings if i.startswith('http')]
-    strings = [i for i in strings if not i.startswith('http')]
+    strings = [i for i in strings if i not in c2_uris and i != rc4_key]
 
     print("[!] C2 URIs:")
     for uri in c2_uris:
-        print(f'    {uri}')
+        print(f'    -> {uri}')
+    
+    print(f"\n[+] C2 Comms RC4 Key: {rc4_key}")
 
-    print("[+] Decrypted Strings:")
+    print("\n[+] Decrypted Strings:")
     for string in strings:
-        print(f'    {string}')
+        print(f'    -> {string}')
 
 
 if __name__ == "__main__":
